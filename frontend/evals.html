@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeGraph AI — Evals</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #21253a; --border: #2a2d3e;
+    --text: #e2e8f0; --muted: #64748b;
+    --accent: #6366f1; --accent-dim: #312e81;
+    --green: #22c55e; --green-dim: #14532d;
+    --red: #ef4444; --red-dim: #7f1d1d;
+    --yellow: #eab308; --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  header h1 { font-size: 18px; font-weight: 600; }
+  header h1 span { color: var(--accent); }
+  .nav-links { display: flex; gap: 12px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+
+  .page { max-width: 1140px; margin: 0 auto; padding: 28px 24px; }
+
+  /* Top bar */
+  .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .top-bar h2 { font-size: 20px; font-weight: 600; }
+  .top-meta { display: flex; gap: 10px; align-items: center; }
+  .ts { font-size: 12px; color: var(--muted); }
+  .run-cmd { font-size: 11px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 5px 12px; border-radius: 6px; font-family: monospace; }
+
+  /* Metric cards */
+  .cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 16px; }
+  .card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px; }
+  .card-value { font-size: 30px; font-weight: 700; line-height: 1; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 6px; }
+  .good { color: var(--green); }
+  .warn { color: var(--yellow); }
+  .bad  { color: var(--red); }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 24px; }
+  .tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color .15s, border-color .15s; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-color: var(--accent); }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Section title */
+  .section-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+  .section-desc { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+
+  /* Confusion matrix */
+  .confusion-wrap { overflow-x: auto; margin-bottom: 24px; }
+  .confusion table { border-collapse: collapse; min-width: 400px; }
+  .confusion th, .confusion td { padding: 10px 18px; text-align: center; border: 1px solid var(--border); font-size: 13px; }
+  .confusion thead th { background: var(--surface2); color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+  .confusion tbody th { background: var(--surface); color: var(--muted); font-size: 11px; text-transform: uppercase; text-align: left; }
+  .confusion td.diag { color: var(--green); font-weight: 700; font-size: 16px; }
+  .confusion td.off  { color: var(--red); font-weight: 600; }
+  .confusion td.zero { color: var(--border); }
+
+  /* Tables */
+  .tbl-wrap { overflow-x: auto; }
+  table.data { width: 100%; border-collapse: collapse; }
+  table.data thead tr { border-bottom: 2px solid var(--border); }
+  table.data th { text-align: left; padding: 9px 12px; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 500; }
+  table.data td { padding: 9px 12px; border-bottom: 1px solid var(--border); font-size: 12px; vertical-align: top; }
+  table.data tr:last-child td { border-bottom: none; }
+  table.data tr:hover td { background: rgba(255,255,255,.02); }
+
+  .hit  { color: var(--green); font-weight: 600; }
+  .miss { color: var(--red);   font-weight: 600; }
+
+  .tag { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 2px 8px; font-family: monospace; font-size: 11px; display: inline-block; margin: 1px 2px 1px 0; }
+  .tag.ok   { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .tag.fail { border-color: var(--red);   color: var(--red);   background: var(--red-dim); }
+  .tag.neutral { color: var(--blue); }
+
+  .bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--border); flex: 1; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width .4s; }
+
+  .no-data { color: var(--muted); font-size: 13px; background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 40px; text-align: center; }
+  .no-data code { display: block; font-family: monospace; margin-top: 8px; font-size: 12px; color: var(--text); background: var(--surface2); padding: 8px 16px; border-radius: 4px; display: inline-block; }
+
+  .stat-row { display: flex; gap: 24px; margin-bottom: 20px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; }
+  .stat-val { font-size: 22px; font-weight: 700; }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Code<span>Graph</span> AI</h1>
+  <nav class="nav-links">
+    <a href="index.html">Query</a>
+    <a href="evals.html" class="active">Evals</a>
+  </nav>
+</header>
+
+<div class="page">
+
+  <div class="top-bar">
+    <h2>Evaluation Results</h2>
+    <div class="top-meta">
+      <span class="ts" id="ts"></span>
+      <span class="run-cmd">python evals/run_evals.py --skip-generation --json</span>
+    </div>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-label">Routing Accuracy</div>
+      <div class="card-value" id="c-routing">—</div>
+      <div class="card-sub" id="c-routing-sub">correct label / 18 queries</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Valid-Label Rate</div>
+      <div class="card-value" id="c-valid">—</div>
+      <div class="card-sub">exact format (no keyword fallback)</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Retrieval Recall@k</div>
+      <div class="card-value" id="c-recall">—</div>
+      <div class="card-sub">MRR: <span id="c-mrr">—</span></div>
+    </div>
+    <div class="card">
+      <div class="card-label">Extraction Accuracy</div>
+      <div class="card-value" id="c-extract">—</div>
+      <div class="card-sub">6 impact queries</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('routing')">Routing</div>
+    <div class="tab" onclick="switchTab('retrieval')">Retrieval</div>
+    <div class="tab" onclick="switchTab('graph')">Graph Extraction</div>
+  </div>
+
+  <!-- Routing tab -->
+  <div class="tab-panel active" id="tab-routing">
+    <div class="section-title">Confusion Matrix</div>
+    <div class="section-desc">Rows = actual label, Columns = predicted label. Diagonal = correct. Off-diagonal = misrouted.</div>
+    <div class="confusion-wrap" id="confusion-matrix">
+      <div class="no-data">No data.<br><code>python evals/run_evals.py --skip-generation --json</code></div>
+    </div>
+    <div class="section-title" style="margin-top:28px">Per-Query Results</div>
+    <div class="tbl-wrap" id="routing-table"></div>
+  </div>
+
+  <!-- Retrieval tab -->
+  <div class="tab-panel" id="tab-retrieval">
+    <div class="stat-row" id="ret-stats"></div>
+    <div class="section-title">Per-Query Results</div>
+    <div class="section-desc">Green tags = expected functions found. Grey = retrieved but not expected. k varies by agent type (code=4, doc=3, impact=3).</div>
+    <div class="tbl-wrap" id="retrieval-table"></div>
+  </div>
+
+  <!-- Graph tab -->
+  <div class="tab-panel" id="tab-graph">
+    <div class="stat-row" id="graph-stats"></div>
+    <div class="section-title">Per-Query Results</div>
+    <div class="section-desc">Extraction: did the LLM extract the exact function name? Caller Jaccard: set overlap between BFS result and expected callers.</div>
+    <div class="tbl-wrap" id="graph-table"></div>
+  </div>
+
+</div>
+
+<script>
+const LABELS = ["code_analysis", "impact_analysis", "doc_generation"];
+
+function switchTab(name) {
+  document.querySelectorAll(".tab").forEach((t, i) => {
+    const names = ["routing", "retrieval", "graph"];
+    t.classList.toggle("active", names[i] === name);
+  });
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  document.getElementById("tab-" + name).classList.add("active");
+}
+
+function pct(v) { return (v * 100).toFixed(1) + "%"; }
+function dec(v, d=3) { return v.toFixed(d); }
+
+function colorClass(v, good, warn) {
+  return v >= good ? "good" : v >= warn ? "warn" : "bad";
+}
+
+function barColor(v) {
+  if (v >= 0.8) return "var(--green)";
+  if (v >= 0.5) return "var(--yellow)";
+  return "var(--red)";
+}
+
+function bar(v) {
+  return `<div class="bar-wrap"><div class="bar"><div class="bar-fill" style="width:${(v*100).toFixed(0)}%;background:${barColor(v)}"></div></div><span style="font-size:11px;color:var(--muted);width:36px">${dec(v,2)}</span></div>`;
+}
+
+async function load() {
+  let data;
+  try {
+    const r = await fetch("/evals/results");
+    if (!r.ok) return;
+    data = await r.json();
+  } catch { return; }
+
+  if (data.timestamp) {
+    document.getElementById("ts").textContent = "Last run: " + new Date(data.timestamp + "Z").toLocaleString();
+  }
+
+  const ro = data.routing || {};
+  const ret = data.retrieval || {};
+  const g = data.graph || {};
+
+  // ── Cards ─────────────────────────────────────────────────────────
+  if (ro.accuracy != null) {
+    const el = document.getElementById("c-routing");
+    el.textContent = pct(ro.accuracy);
+    el.className = "card-value " + colorClass(ro.accuracy, 0.8, 0.5);
+    document.getElementById("c-routing-sub").textContent = `${ro.correct} / ${ro.total} queries`;
+  }
+  if (ro.valid_label_rate != null) {
+    const el = document.getElementById("c-valid");
+    el.textContent = pct(ro.valid_label_rate);
+    el.className = "card-value " + colorClass(ro.valid_label_rate, 0.8, 0.5);
+  }
+  if (ret.mean_recall_at_k != null) {
+    const el = document.getElementById("c-recall");
+    el.textContent = dec(ret.mean_recall_at_k);
+    el.className = "card-value " + colorClass(ret.mean_recall_at_k, 0.9, 0.7);
+    document.getElementById("c-mrr").textContent = dec(ret.mrr);
+  }
+  if (g.extraction_accuracy != null) {
+    const el = document.getElementById("c-extract");
+    el.textContent = pct(g.extraction_accuracy);
+    el.className = "card-value " + colorClass(g.extraction_accuracy, 0.8, 0.5);
+  }
+
+  // ── Routing: confusion matrix ──────────────────────────────────────
+  if (ro.confusion) {
+    let html = '<div class="confusion"><table><thead><tr><th>Actual \\ Predicted</th>';
+    LABELS.forEach(l => html += `<th>${l.replace(/_/g," ")}</th>`);
+    html += "</tr></thead><tbody>";
+    LABELS.forEach(actual => {
+      html += `<tr><th>${actual.replace(/_/g," ")}</th>`;
+      LABELS.forEach(pred => {
+        const v = (ro.confusion[actual] || {})[pred] || 0;
+        const cls = actual === pred ? (v > 0 ? "diag" : "zero") : (v > 0 ? "off" : "zero");
+        html += `<td class="${cls}">${v}</td>`;
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table></div>";
+    document.getElementById("confusion-matrix").innerHTML = html;
+  }
+
+  if (ro.per_query && ro.per_query.length) {
+    let html = '<table class="data"><thead><tr><th>#</th><th>Query</th><th>Expected</th><th>Predicted</th><th>Method</th><th></th></tr></thead><tbody>';
+    ro.per_query.forEach((row, i) => {
+      const ok = row.correct;
+      const methodColor = row.method === "exact" ? "var(--green)" : row.method === "keyword" ? "var(--yellow)" : "var(--red)";
+      html += `<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td>${row.query}</td>
+        <td><span class="tag neutral">${row.expected}</span></td>
+        <td><span class="tag ${ok ? 'ok' : 'fail'}">${row.predicted}</span></td>
+        <td style="color:${methodColor};font-size:11px">${row.method || 'exact'}</td>
+        <td class="${ok ? 'hit' : 'miss'}">${ok ? "✓" : "✗"}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    document.getElementById("routing-table").innerHTML = html;
+  }
+
+  // ── Retrieval ──────────────────────────────────────────────────────
+  if (ret.mean_recall_at_k != null) {
+    document.getElementById("ret-stats").innerHTML = `
+      <div class="stat"><div class="stat-val ${colorClass(ret.mean_recall_at_k,0.9,0.7)}">${dec(ret.mean_recall_at_k)}</div><div class="stat-lbl">Mean Recall@k</div></div>
+      <div class="stat"><div class="stat-val ${colorClass(ret.mrr,0.9,0.7)}">${dec(ret.mrr)}</div><div class="stat-lbl">MRR (Mean Reciprocal Rank)</div></div>
+      <div class="stat"><div class="stat-val">${ret.per_query ? ret.per_query.filter(r=>r.recall===1).length : '—'} / ${ret.per_query ? ret.per_query.length : 18}</div><div class="stat-lbl">Perfect Recall@k</div></div>`;
+  }
+
+  if (ret.per_query && ret.per_query.length) {
+    let html = '<table class="data"><thead><tr><th>#</th><th>Query</th><th>Type</th><th>k</th><th>Recall</th><th>RR</th><th>Expected</th><th>Retrieved (top-k)</th></tr></thead><tbody>';
+    ret.per_query.forEach((row, i) => {
+      const ok = row.recall === 1;
+      const expTags = row.expected.map(e => `<span class="tag ok">${e}</span>`).join("");
+      const retTags = row.retrieved.map(n => {
+        const hit = row.expected.includes(n);
+        return `<span class="tag ${hit ? 'ok' : ''}">${n}</span>`;
+      }).join("");
+      html += `<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td>${row.query}</td>
+        <td style="color:var(--muted);font-size:11px">${i<6?"code":i<12?"doc":"impact"}</td>
+        <td style="color:var(--muted)">${row.k}</td>
+        <td class="${ok?'hit':row.recall>0?'':'miss'}">${row.recall.toFixed(2)}</td>
+        <td>${row.rr.toFixed(2)}</td>
+        <td>${expTags}</td>
+        <td>${retTags}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    document.getElementById("retrieval-table").innerHTML = html;
+  }
+
+  // ── Graph ──────────────────────────────────────────────────────────
+  if (g.extraction_accuracy != null) {
+    document.getElementById("graph-stats").innerHTML = `
+      <div class="stat"><div class="stat-val ${colorClass(g.extraction_accuracy,0.8,0.5)}">${pct(g.extraction_accuracy)}</div><div class="stat-lbl">Extraction Accuracy</div></div>
+      <div class="stat"><div class="stat-val ${colorClass(g.graph_only_caller_jaccard,0.8,0.5)}">${dec(g.graph_only_caller_jaccard)}</div><div class="stat-lbl">Graph-only Caller J</div></div>
+      <div class="stat"><div class="stat-val ${colorClass(g.graph_only_callee_jaccard,0.8,0.5)}">${dec(g.graph_only_callee_jaccard)}</div><div class="stat-lbl">Graph-only Callee J</div></div>
+      <div class="stat"><div class="stat-val ${colorClass(g.e2e_caller_jaccard,0.8,0.5)}">${dec(g.e2e_caller_jaccard)}</div><div class="stat-lbl">End-to-end Caller J</div></div>
+      <div class="stat"><div class="stat-val ${colorClass(g.e2e_callee_jaccard,0.8,0.5)}">${dec(g.e2e_callee_jaccard)}</div><div class="stat-lbl">End-to-end Callee J</div></div>`;
+  }
+
+  if (g.per_query && g.per_query.length) {
+    let html = '<table class="data"><thead><tr><th>#</th><th>Query</th><th>Expected fn</th><th>Extracted</th><th>OK?</th><th>Graph-only Caller J</th><th>E2E Caller J</th></tr></thead><tbody>';
+    g.per_query.forEach((row, i) => {
+      const extOk = row.extraction_ok;
+      html += `<tr>
+        <td style="color:var(--muted)">${i+1}</td>
+        <td>${row.query}</td>
+        <td><span class="tag neutral">${row.expected_fn}</span></td>
+        <td><span class="tag ${extOk?'ok':'fail'}">${row.extracted}</span></td>
+        <td class="${extOk?'hit':'miss'}">${extOk?"✓":"✗"}</td>
+        <td>${bar(row.graph_only_caller_jaccard)}</td>
+        <td>${bar(row.e2e_caller_jaccard)}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    document.getElementById("graph-table").innerHTML = html;
+  }
+}
+
+load();
+</script>
+</body>
+</html>

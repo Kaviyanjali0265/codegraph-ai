@@ -1,0 +1,10 @@
+chromadb
+ollama
+networkx
+langgraph
+fastapi
+uvicorn[standard]
+httpx
+pydantic
+python-dotenv
+aiofiles

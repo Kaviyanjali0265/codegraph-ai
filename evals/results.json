@@ -1,0 +1,507 @@
+{
+  "timestamp": "2026-09-24T12:24:15.504896",
+  "routing": {
+    "accuracy": 0.9444444444444444,
+    "correct": 17,
+    "total": 18,
+    "valid_label_rate": 1.0,
+    "exact_count": 18,
+    "confusion": {
+      "code_analysis": {
+        "code_analysis": 6,
+        "impact_analysis": 0,
+        "doc_generation": 0
+      },
+      "impact_analysis": {
+        "code_analysis": 0,
+        "impact_analysis": 6,
+        "doc_generation": 0
+      },
+      "doc_generation": {
+        "code_analysis": 1,
+        "impact_analysis": 0,
+        "doc_generation": 5
+      }
+    },
+    "per_query": [
+      {
+        "query": "What does place_order do?",
+        "expected": "code_analysis",
+        "predicted": "code_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "How does inventory reservation work?",
+        "expected": "code_analysis",
+        "predicted": "code_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "How are users notified?",
+        "expected": "code_analysis",
+        "predicted": "code_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "What does the refund function do?",
+        "expected": "code_analysis",
+        "predicted": "code_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "How does check_stock work?",
+        "expected": "code_analysis",
+        "predicted": "code_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "What does complete_order do?",
+        "expected": "code_analysis",
+        "predicted": "code_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "Generate docs for the refund function",
+        "expected": "doc_generation",
+        "predicted": "doc_generation",
+        "correct": true,
+        "method": "exact",
+        "raw": "doc_generation"
+      },
+      {
+        "query": "Write documentation for cancel_order",
+        "expected": "doc_generation",
+        "predicted": "code_analysis",
+        "correct": false,
+        "method": "exact",
+        "raw": "code_analysis"
+      },
+      {
+        "query": "Document the notify_user function",
+        "expected": "doc_generation",
+        "predicted": "doc_generation",
+        "correct": true,
+        "method": "exact",
+        "raw": "doc_generation"
+      },
+      {
+        "query": "Generate documentation for place_order",
+        "expected": "doc_generation",
+        "predicted": "doc_generation",
+        "correct": true,
+        "method": "exact",
+        "raw": "doc_generation"
+      },
+      {
+        "query": "Write docs for check_stock",
+        "expected": "doc_generation",
+        "predicted": "doc_generation",
+        "correct": true,
+        "method": "exact",
+        "raw": "doc_generation"
+      },
+      {
+        "query": "Generate API docs for charge_card",
+        "expected": "doc_generation",
+        "predicted": "doc_generation",
+        "correct": true,
+        "method": "exact",
+        "raw": "doc_generation"
+      },
+      {
+        "query": "What breaks if charge_card changes?",
+        "expected": "impact_analysis",
+        "predicted": "impact_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "impact_analysis"
+      },
+      {
+        "query": "What breaks if validate_payment changes?",
+        "expected": "impact_analysis",
+        "predicted": "impact_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "impact_analysis"
+      },
+      {
+        "query": "What is affected if get_product changes?",
+        "expected": "impact_analysis",
+        "predicted": "impact_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "impact_analysis"
+      },
+      {
+        "query": "What depends on the card charging function?",
+        "expected": "impact_analysis",
+        "predicted": "impact_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "impact_analysis"
+      },
+      {
+        "query": "What breaks if send_email changes?",
+        "expected": "impact_analysis",
+        "predicted": "impact_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "impact_analysis"
+      },
+      {
+        "query": "What is affected if send_receipt changes?",
+        "expected": "impact_analysis",
+        "predicted": "impact_analysis",
+        "correct": true,
+        "method": "exact",
+        "raw": "impact_analysis"
+      }
+    ]
+  },
+  "retrieval": {
+    "mean_recall_at_k": 0.9444444444444444,
+    "mrr": 0.9074074074074073,
+    "per_query": [
+      {
+        "query": "What does place_order do?",
+        "k": 4,
+        "recall": 1.0,
+        "rr": 0.333,
+        "expected": [
+          "place_order"
+        ],
+        "retrieved": [
+          "get_order_status",
+          "get_order",
+          "place_order",
+          "save_order"
+        ]
+      },
+      {
+        "query": "How does inventory reservation work?",
+        "k": 4,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "reserve_item",
+          "check_stock"
+        ],
+        "retrieved": [
+          "reserve_item",
+          "check_stock",
+          "release_item",
+          "update_stock"
+        ]
+      },
+      {
+        "query": "How are users notified?",
+        "k": 4,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "notify_user"
+        ],
+        "retrieved": [
+          "notify_user",
+          "notify_admin",
+          "send_email",
+          "send_sms"
+        ]
+      },
+      {
+        "query": "What does the refund function do?",
+        "k": 4,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "refund"
+        ],
+        "retrieved": [
+          "refund",
+          "cancel_order",
+          "send_receipt",
+          "charge_card"
+        ]
+      },
+      {
+        "query": "How does check_stock work?",
+        "k": 4,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "check_stock"
+        ],
+        "retrieved": [
+          "check_stock",
+          "reserve_item",
+          "update_stock",
+          "update_product_stock"
+        ]
+      },
+      {
+        "query": "What does complete_order do?",
+        "k": 4,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "complete_order"
+        ],
+        "retrieved": [
+          "complete_order",
+          "get_order_status",
+          "get_order",
+          "cancel_order"
+        ]
+      },
+      {
+        "query": "Generate docs for the refund function",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "refund"
+        ],
+        "retrieved": [
+          "refund",
+          "cancel_order",
+          "get_product"
+        ]
+      },
+      {
+        "query": "Write documentation for cancel_order",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "cancel_order"
+        ],
+        "retrieved": [
+          "cancel_order",
+          "save_order",
+          "complete_order"
+        ]
+      },
+      {
+        "query": "Document the notify_user function",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "notify_user"
+        ],
+        "retrieved": [
+          "notify_user",
+          "notify_admin",
+          "send_sms"
+        ]
+      },
+      {
+        "query": "Generate documentation for place_order",
+        "k": 3,
+        "recall": 0.0,
+        "rr": 0.0,
+        "expected": [
+          "place_order"
+        ],
+        "retrieved": [
+          "get_order_status",
+          "get_order",
+          "update_order_status"
+        ]
+      },
+      {
+        "query": "Write docs for check_stock",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "check_stock"
+        ],
+        "retrieved": [
+          "check_stock",
+          "reserve_item",
+          "update_stock"
+        ]
+      },
+      {
+        "query": "Generate API docs for charge_card",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "charge_card"
+        ],
+        "retrieved": [
+          "charge_card",
+          "validate_payment",
+          "get_product"
+        ]
+      },
+      {
+        "query": "What breaks if charge_card changes?",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "charge_card"
+        ],
+        "retrieved": [
+          "charge_card",
+          "validate_payment",
+          "update_order_status"
+        ]
+      },
+      {
+        "query": "What breaks if validate_payment changes?",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "validate_payment"
+        ],
+        "retrieved": [
+          "validate_payment",
+          "charge_card",
+          "refund"
+        ]
+      },
+      {
+        "query": "What is affected if get_product changes?",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "get_product"
+        ],
+        "retrieved": [
+          "get_product",
+          "update_stock",
+          "update_product_stock"
+        ]
+      },
+      {
+        "query": "What depends on the card charging function?",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "charge_card"
+        ],
+        "retrieved": [
+          "charge_card",
+          "validate_payment",
+          "place_order"
+        ]
+      },
+      {
+        "query": "What breaks if send_email changes?",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "send_email"
+        ],
+        "retrieved": [
+          "send_email",
+          "notify_admin",
+          "send_sms"
+        ]
+      },
+      {
+        "query": "What is affected if send_receipt changes?",
+        "k": 3,
+        "recall": 1.0,
+        "rr": 1.0,
+        "expected": [
+          "send_receipt"
+        ],
+        "retrieved": [
+          "send_receipt",
+          "send_email",
+          "send_sms"
+        ]
+      }
+    ]
+  },
+  "graph": {
+    "extraction_accuracy": 0.3333333333333333,
+    "graph_only_caller_jaccard": 1.0,
+    "graph_only_callee_jaccard": 1.0,
+    "e2e_caller_jaccard": 0.3333333333333333,
+    "e2e_callee_jaccard": 0.3333333333333333,
+    "per_query": [
+      {
+        "query": "What breaks if charge_card changes?",
+        "expected_fn": "charge_card",
+        "extracted": "Charge_card_changes",
+        "extraction_ok": false,
+        "graph_only_caller_jaccard": 1.0,
+        "graph_only_callee_jaccard": 1.0,
+        "e2e_caller_jaccard": 0.0,
+        "e2e_callee_jaccard": 0.0
+      },
+      {
+        "query": "What breaks if validate_payment changes?",
+        "expected_fn": "validate_payment",
+        "extracted": "Validate_payment",
+        "extraction_ok": false,
+        "graph_only_caller_jaccard": 1.0,
+        "graph_only_callee_jaccard": 1.0,
+        "e2e_caller_jaccard": 0.0,
+        "e2e_callee_jaccard": 0.0
+      },
+      {
+        "query": "What is affected if get_product changes?",
+        "expected_fn": "get_product",
+        "extracted": "get_product",
+        "extraction_ok": true,
+        "graph_only_caller_jaccard": 1.0,
+        "graph_only_callee_jaccard": 1.0,
+        "e2e_caller_jaccard": 1.0,
+        "e2e_callee_jaccard": 1.0
+      },
+      {
+        "query": "What depends on the card charging function?",
+        "expected_fn": "charge_card",
+        "extracted": "MySQL",
+        "extraction_ok": false,
+        "graph_only_caller_jaccard": 1.0,
+        "graph_only_callee_jaccard": 1.0,
+        "e2e_caller_jaccard": 0.0,
+        "e2e_callee_jaccard": 0.0
+      },
+      {
+        "query": "What breaks if send_email changes?",
+        "expected_fn": "send_email",
+        "extracted": "smtp",
+        "extraction_ok": false,
+        "graph_only_caller_jaccard": 1.0,
+        "graph_only_callee_jaccard": 1.0,
+        "e2e_caller_jaccard": 0.0,
+        "e2e_callee_jaccard": 0.0
+      },
+      {
+        "query": "What is affected if send_receipt changes?",
+        "expected_fn": "send_receipt",
+        "extracted": "send_receipt",
+        "extraction_ok": true,
+        "graph_only_caller_jaccard": 1.0,
+        "graph_only_callee_jaccard": 1.0,
+        "e2e_caller_jaccard": 1.0,
+        "e2e_callee_jaccard": 1.0
+      }
+    ]
+  }
+}

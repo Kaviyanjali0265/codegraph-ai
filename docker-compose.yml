@@ -1,0 +1,71 @@
+services:
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  code_analyst:
+    build: .
+    command: python agents/code_analyst/main.py
+    ports:
+      - "8001:8001"
+    volumes:
+      - chroma_data:/app/.data
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  impact_analyzer:
+    build: .
+    command: python agents/impact_analyzer/main.py
+    ports:
+      - "8002:8002"
+    volumes:
+      - chroma_data:/app/.data
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  doc_generator:
+    build: .
+    command: python agents/doc_generator/main.py
+    ports:
+      - "8003:8003"
+    volumes:
+      - chroma_data:/app/.data
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    depends_on:
+      ollama:
+        condition: service_healthy
+
+  orchestrator:
+    build: .
+    command: python orchestrator/main.py
+    ports:
+      - "8000:8000"
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - CODE_ANALYST_URL=http://code_analyst:8001
+      - IMPACT_ANALYZER_URL=http://impact_analyzer:8002
+      - DOC_GENERATOR_URL=http://doc_generator:8003
+    depends_on:
+      - code_analyst
+      - impact_analyzer
+      - doc_generator
+
+volumes:
+  ollama_data:
+  chroma_data:

@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.data/
+.env
+assets/
+evals/results.json

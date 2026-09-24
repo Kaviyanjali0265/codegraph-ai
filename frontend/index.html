@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CodeGraph AI</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --border: #2a2d3e;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --accent: #6366f1;
+    --accent-dim: #312e81;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #eab308;
+    --blue: #3b82f6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  header h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  header h1 span { color: var(--accent); }
+  .nav-links { display: flex; gap: 12px; }
+  .nav-links a { color: var(--muted); text-decoration: none; font-size: 13px; transition: color .2s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+
+  .layout { display: grid; grid-template-columns: 1fr 320px; gap: 0; height: calc(100vh - 53px); }
+
+  /* Left panel */
+  .main-panel { padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; border-right: 1px solid var(--border); }
+
+  .api-row { display: flex; gap: 10px; align-items: center; }
+  .api-row label { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .api-row input { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px; font-family: monospace; }
+  .api-row input:focus { outline: none; border-color: var(--accent); }
+
+  .query-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  textarea { background: transparent; border: none; color: var(--text); resize: none; font-size: 14px; font-family: inherit; line-height: 1.5; outline: none; width: 100%; min-height: 80px; }
+  textarea::placeholder { color: var(--muted); }
+  .query-footer { display: flex; justify-content: flex-end; }
+  button.submit { background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity .2s; }
+  button.submit:hover { opacity: .85; }
+  button.submit:disabled { opacity: .4; cursor: not-allowed; }
+
+  .answer-section { display: none; flex-direction: column; gap: 12px; }
+  .answer-section.visible { display: flex; }
+  .answer-header { display: flex; align-items: center; gap: 8px; }
+  .answer-header span { font-size: 12px; color: var(--muted); }
+  .agent-badge { background: var(--accent-dim); color: var(--accent); padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+  .answer-body { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; line-height: 1.7; white-space: pre-wrap; word-break: break-word; max-height: 400px; overflow-y: auto; }
+  .sources-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .source-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 3px 10px; font-size: 11px; font-family: monospace; color: var(--blue); }
+  .sources-label { font-size: 12px; color: var(--muted); }
+
+  /* Right panel — pipeline */
+  .pipeline-panel { padding: 20px 16px; overflow-y: auto; background: var(--surface); }
+  .pipeline-panel h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 16px; }
+  .pipeline-steps { display: flex; flex-direction: column; gap: 2px; }
+  .step { display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border-radius: 6px; transition: background .2s; }
+  .step.active { background: rgba(99,102,241,.1); }
+  .step-icon { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+  .step-icon.idle { background: var(--border); color: var(--muted); }
+  .step-icon.running { background: var(--yellow); color: #000; animation: pulse 1s infinite; }
+  .step-icon.done { background: var(--green); color: #000; }
+  .step-icon.error { background: var(--red); color: #fff; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .step-info { flex: 1; min-width: 0; }
+  .step-name { font-size: 13px; font-weight: 500; }
+  .step-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .idle-msg { color: var(--muted); font-size: 13px; text-align: center; padding: 40px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Code<span>Graph</span> AI</h1>
+  <nav class="nav-links">
+    <a href="index.html" class="active">Query</a>
+    <a href="evals.html">Evals</a>
+  </nav>
+</header>
+
+<div class="layout">
+  <!-- Left: query + answer -->
+  <div class="main-panel">
+    <div class="api-row">
+      <label>API Key</label>
+      <input type="password" id="apiKey" placeholder="key-dev-001" />
+    </div>
+
+    <div class="query-box">
+      <textarea id="queryInput" placeholder="Ask about the codebase — e.g. What does place_order do? / What breaks if charge_card changes?" rows="4"></textarea>
+      <div class="query-footer">
+        <button class="submit" id="submitBtn" onclick="submitQuery()">Ask</button>
+      </div>
+    </div>
+
+    <div class="answer-section" id="answerSection">
+      <div class="answer-header">
+        <span>Answer</span>
+        <span class="agent-badge" id="agentBadge">—</span>
+      </div>
+      <div class="answer-body" id="answerBody"></div>
+      <div class="sources-label">Sources</div>
+      <div class="sources-list" id="sourcesList"></div>
+    </div>
+  </div>
+
+  <!-- Right: pipeline stages -->
+  <div class="pipeline-panel">
+    <h2>Pipeline</h2>
+    <div id="pipelineSteps">
+      <div class="idle-msg">Submit a query to see the pipeline</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const STEPS_META = [
+  { id: "input_guardrail", label: "Input Guardrail" },
+  { id: "load_memory",     label: "Load Memory" },
+  { id: "classify",        label: "Classify" },
+  { id: "agent",           label: "Agent Call" },
+  { id: "output_guardrail",label: "Output Guardrail" },
+  { id: "reflect",         label: "Self-Reflect" },
+  { id: "save_memory",     label: "Save Memory" },
+];
+
+const AGENT_NODES = new Set(["code_analysis", "impact_analysis", "doc_generation"]);
+
+function initSteps() {
+  const container = document.getElementById("pipelineSteps");
+  container.innerHTML = "";
+  STEPS_META.forEach(s => {
+    const el = document.createElement("div");
+    el.className = "step";
+    el.id = "step-" + s.id;
+    el.innerHTML = `
+      <div class="step-icon idle" id="icon-${s.id}">○</div>
+      <div class="step-info">
+        <div class="step-name">${s.label}</div>
+        <div class="step-detail" id="detail-${s.id}">waiting</div>
+      </div>`;
+    container.appendChild(el);
+  });
+}
+
+function setStep(id, status, detail = "") {
+  const icon = document.getElementById("icon-" + id);
+  const det  = document.getElementById("detail-" + id);
+  const step = document.getElementById("step-" + id);
+  if (!icon) return;
+  icon.className = "step-icon " + status;
+  icon.textContent = status === "done" ? "✓" : status === "error" ? "✗" : status === "running" ? "…" : "○";
+  if (detail) det.textContent = detail;
+  if (status === "running") step.classList.add("active"); else step.classList.remove("active");
+}
+
+function saveKey() {
+  const k = document.getElementById("apiKey").value.trim();
+  if (k) localStorage.setItem("cg_api_key", k);
+}
+
+async function submitQuery() {
+  const query = document.getElementById("queryInput").value.trim();
+  const apiKey = document.getElementById("apiKey").value.trim() || localStorage.getItem("cg_api_key") || "key-dev-001";
+  if (!query) return;
+
+  saveKey();
+  document.getElementById("submitBtn").disabled = true;
+  document.getElementById("answerSection").classList.remove("visible");
+  initSteps();
+
+  // Mark first step as running
+  setStep("input_guardrail", "running", "checking…");
+
+  try {
+    const resp = await fetch("/query/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+      body: JSON.stringify({ query, session_id: "ui" }),
+    });
+
+    if (!resp.ok) {
+      setStep("input_guardrail", "error", `HTTP ${resp.status}`);
+      document.getElementById("submitBtn").disabled = false;
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        handleEvent(JSON.parse(line.slice(6)));
+      }
+    }
+  } catch (e) {
+    setStep("input_guardrail", "error", e.message);
+  }
+
+  document.getElementById("submitBtn").disabled = false;
+}
+
+function handleEvent(ev) {
+  const node = ev.node;
+
+  if (node === "done") {
+    setStep("save_memory", "done", "saved");
+    // Show answer
+    const section = document.getElementById("answerSection");
+    document.getElementById("answerBody").textContent = ev.result || "(no answer)";
+    document.getElementById("agentBadge").textContent = ev.agent_used || "—";
+    const sourcesList = document.getElementById("sourcesList");
+    sourcesList.innerHTML = "";
+    (ev.sources || []).forEach(s => {
+      const chip = document.createElement("span");
+      chip.className = "source-chip";
+      chip.textContent = s;
+      sourcesList.appendChild(chip);
+    });
+    section.classList.add("visible");
+    return;
+  }
+
+  if (node === "input_guardrail") {
+    if (ev.blocked) { setStep("input_guardrail", "error", ev.reason || "blocked"); }
+    else { setStep("input_guardrail", "done", "passed"); setStep("load_memory", "running", "loading context…"); }
+    return;
+  }
+  if (node === "blocked_response") {
+    setStep("input_guardrail", "error", "blocked");
+    return;
+  }
+  if (node === "load_memory") {
+    setStep("load_memory", "done", "context ready");
+    setStep("classify", "running", "classifying…");
+    return;
+  }
+  if (node === "classify") {
+    setStep("classify", "done", ev.query_type || "");
+    setStep("agent", "running", `calling ${ev.query_type || "agent"}…`);
+    return;
+  }
+  if (AGENT_NODES.has(node)) {
+    setStep("agent", "done", node.replace("_", " "));
+    setStep("output_guardrail", "running", "validating…");
+    return;
+  }
+  if (node === "output_guardrail") {
+    if (ev.blocked) { setStep("output_guardrail", "error", "blocked"); }
+    else { setStep("output_guardrail", "done", "passed"); setStep("reflect", "running", "scoring…"); }
+    return;
+  }
+  if (node === "reflect") {
+    const score = ev.reflection_score;
+    const retry = score < 6 && ev.reflection_count <= 2;
+    if (retry) {
+      setStep("reflect", "running", `score ${score}/10 — retrying`);
+      setStep("agent", "running", "retrying agent…");
+    } else {
+      setStep("reflect", "done", `score ${score}/10`);
+      setStep("save_memory", "running", "saving…");
+    }
+    return;
+  }
+  if (node === "save_memory") {
+    setStep("save_memory", "running", "saving…");
+    return;
+  }
+}
+
+// Restore saved key
+window.onload = () => {
+  const k = localStorage.getItem("cg_api_key");
+  if (k) document.getElementById("apiKey").value = k;
+};
+
+// Ctrl+Enter submits
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) submitQuery();
+});
+</script>
+
+</body>
+</html>

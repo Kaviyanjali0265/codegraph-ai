@@ -26,6 +26,7 @@ Built entirely on open-source tools. No paid APIs.
 | Agent protocol | A2A — Agent Cards + task lifecycle over HTTP |
 | API framework | FastAPI + Pydantic |
 | Memory | Session buffer (in-process) + ChromaDB long-term (TTL 30 days) |
+| Observability | LangSmith — traces the full LangGraph run (every node + nested LLM calls), latency, token usage |
 
 ---
 
@@ -105,7 +106,19 @@ ollama pull nomic-embed-text
 pip install -r requirements.txt
 ```
 
-### 3. Ingest the codebase (run once)
+### 3. (Optional) Enable observability
+
+Create a `.env` file to send traces to [LangSmith](https://smith.langchain.com) (free tier):
+
+```bash
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=<your-langsmith-api-key>
+LANGCHAIN_PROJECT=codegraph-ai
+```
+
+Without this file, the app runs identically — tracing is opt-in and fails silently closed (no key, no traces, no errors).
+
+### 4. Ingest the codebase (run once)
 
 ```bash
 make ingest
@@ -254,3 +267,5 @@ Generation eval (LLM-as-judge on answer quality) is implemented but not yet repo
 **Memory** — two layers: in-process session buffer (last 5 turns, lost on restart) and ChromaDB long-term store (TTL 30 days, auto-cleanup on every save).
 
 **Guardrails** — input validation (length, empty check) and output validation (minimum length, sources required) wrap every request without any external library.
+
+**Observability** — LangSmith traces every `orchestrator.invoke()` call as one tree: each LangGraph node (`input_guardrail`, `load_memory`, `classify`, the selected agent, `output_guardrail`, `reflect`, `save_memory`) appears as a nested span, with the underlying Ollama calls (via `@traceable` on `core/ollama_client.py`) nested one level deeper, carrying prompt/completion token counts pulled from Ollama's own response (`prompt_eval_count`/`eval_count`). Opt-in via `.env` — see Setup.

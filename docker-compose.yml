@@ -21,6 +21,9 @@ services:
       - chroma_data:/app/.data
     environment:
       - OLLAMA_HOST=http://ollama:11434
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-codegraph-ai}
     depends_on:
       ollama:
         condition: service_healthy
@@ -34,6 +37,9 @@ services:
       - chroma_data:/app/.data
     environment:
       - OLLAMA_HOST=http://ollama:11434
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-codegraph-ai}
     depends_on:
       ollama:
         condition: service_healthy
@@ -47,6 +53,9 @@ services:
       - chroma_data:/app/.data
     environment:
       - OLLAMA_HOST=http://ollama:11434
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-codegraph-ai}
     depends_on:
       ollama:
         condition: service_healthy
@@ -61,6 +70,9 @@ services:
       - CODE_ANALYST_URL=http://code_analyst:8001
       - IMPACT_ANALYZER_URL=http://impact_analyzer:8002
       - DOC_GENERATOR_URL=http://doc_generator:8003
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2:-false}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY:-}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT:-codegraph-ai}
     depends_on:
       - code_analyst
       - impact_analyzer
